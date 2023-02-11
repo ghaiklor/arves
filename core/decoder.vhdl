@@ -67,6 +67,7 @@ begin
         funct7    <= instruction(31 downto 25);
       else
         immediate <= (31 downto 12 => instruction(31)) & instruction(31 downto 20);
+        funct7    <= (others => '0');
       end if;
     elsif (instruction_type = alu_r_type) then
       opcode <= instruction(6 downto 0);
