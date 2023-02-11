@@ -61,6 +61,7 @@ begin
       rd     <= instruction(11 downto 7);
       funct3 <= instruction(14 downto 12);
       rs1    <= instruction(19 downto 15);
+      rs2    <= std_logic_vector(to_unsigned(0, rs2'length));
 
       if (instruction(14 downto 12) = "001" or instruction(14 downto 12) = "101") then
         immediate <= (31 downto 5 => '0') & instruction(24 downto 20);
