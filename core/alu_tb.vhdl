@@ -18,8 +18,8 @@ architecture tb of alu_tb is
     port (
       a      : in    std_logic_vector(31 downto 0);
       b      : in    std_logic_vector(31 downto 0);
-      funct3 : in    bit_vector(2 downto 0);
-      funct7 : in    bit_vector(6 downto 0);
+      funct3 : in    std_logic_vector(2 downto 0);
+      funct7 : in    std_logic_vector(6 downto 0);
       result : out   std_logic_vector(31 downto 0)
     );
   end component;
@@ -28,8 +28,8 @@ architecture tb of alu_tb is
 
   signal a      : std_logic_vector(31 downto 0);
   signal b      : std_logic_vector(31 downto 0);
-  signal funct3 : bit_vector(2 downto 0);
-  signal funct7 : bit_vector(6 downto 0);
+  signal funct3 : std_logic_vector(2 downto 0);
+  signal funct7 : std_logic_vector(6 downto 0);
   signal result : std_logic_vector(31 downto 0);
 
 begin

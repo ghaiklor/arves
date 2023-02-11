@@ -34,8 +34,8 @@ entity alu is
   port (
     a      : in    std_logic_vector(31 downto 0);
     b      : in    std_logic_vector(31 downto 0);
-    funct3 : in    bit_vector(2 downto 0);
-    funct7 : in    bit_vector(6 downto 0);
+    funct3 : in    std_logic_vector(2 downto 0);
+    funct7 : in    std_logic_vector(6 downto 0);
     result : out   std_logic_vector(31 downto 0)
   );
 end entity alu;
@@ -44,22 +44,22 @@ architecture rtl of alu is
 
   -- These vectors are concatenated vectors of funct7 and funct3 fields from RISC-V specification
   -- They made to simplify internal decoding of operation code
-  constant addition               : bit_vector := "0000000" & "000";
-  constant subtraction            : bit_vector := "0100000" & "000";
-  constant shift_left_logical     : bit_vector := "0000000" & "001";
-  constant set_less_than_signed   : bit_vector := "0000000" & "010";
-  constant set_less_than_unsigned : bit_vector := "0000000" & "011";
-  constant exclusive_or           : bit_vector := "0000000" & "100";
-  constant shift_right_logical    : bit_vector := "0000000" & "101";
-  constant shift_right_arithmetic : bit_vector := "0100000" & "101";
-  constant logical_or             : bit_vector := "0000000" & "110";
-  constant logical_and            : bit_vector := "0000000" & "111";
+  constant addition               : std_logic_vector := "0000000" & "000";
+  constant subtraction            : std_logic_vector := "0100000" & "000";
+  constant shift_left_logical     : std_logic_vector := "0000000" & "001";
+  constant set_less_than_signed   : std_logic_vector := "0000000" & "010";
+  constant set_less_than_unsigned : std_logic_vector := "0000000" & "011";
+  constant exclusive_or           : std_logic_vector := "0000000" & "100";
+  constant shift_right_logical    : std_logic_vector := "0000000" & "101";
+  constant shift_right_arithmetic : std_logic_vector := "0100000" & "101";
+  constant logical_or             : std_logic_vector := "0000000" & "110";
+  constant logical_and            : std_logic_vector := "0000000" & "111";
 
 begin
 
   execute : process (a, b, funct3, funct7) is
 
-    variable opcode : bit_vector(9 downto 0);
+    variable opcode : std_logic_vector(9 downto 0);
 
   begin
 
