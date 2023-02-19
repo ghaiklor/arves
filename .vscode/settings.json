@@ -4,6 +4,7 @@
         "downto",
         "funct",
         "sltu",
-        "srai"
+        "srai",
+        "uart"
     ]
 }
