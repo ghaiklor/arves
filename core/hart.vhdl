@@ -18,7 +18,9 @@ entity hart is
   port (
     instruction : in    std_logic_vector(31 downto 0);
     clk         : in    std_logic;
-    reset       : in    std_logic
+    reset       : in    std_logic;
+
+    instruction_address : out   std_logic_vector(31 downto 0)
   );
 end entity hart;
 
@@ -89,6 +91,9 @@ architecture rtl of hart is
   signal decoder_out_funct7     : std_logic_vector(6 downto 0);
   signal decoder_out_immediate  : std_logic_vector(31 downto 0);
 
+  -- Program Counter Register
+  signal program_counter : std_logic_vector(31 downto 0);
+
 begin
 
   functional_unit_alu : component alu
@@ -141,5 +146,20 @@ begin
   register_file_in_reset        <= reset;
 
   decoder_in_instruction <= instruction;
+  instruction_address    <= program_counter;
+
+  -- Each clock cycle we need to update our program counter
+  -- In case it is just a linear execution, we increment it by one
+  -- Otherwise, if it is a branching instruction, we need to update it with the value from the instruction
+  update_program_counter : process (clk, reset) is
+  begin
+
+    if (reset = '1') then
+      program_counter <= std_logic_vector(to_unsigned(0, program_counter'length));
+    elsif rising_edge(clk) then
+      program_counter <= std_logic_vector(unsigned(program_counter) + to_unsigned(1, program_counter'length));
+    end if;
+
+  end process update_program_counter;
 
 end architecture rtl;

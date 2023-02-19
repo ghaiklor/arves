@@ -13,23 +13,26 @@ architecture tb of hart_tb is
 
   component hart is
     port (
-      instruction : in    std_logic_vector(31 downto 0);
-      clk         : in    std_logic;
-      reset       : in    std_logic
+      instruction         : in    std_logic_vector(31 downto 0);
+      clk                 : in    std_logic;
+      reset               : in    std_logic;
+      instruction_address : out   std_logic_vector(31 downto 0)
     );
   end component;
 
-  signal instruction : std_logic_vector(31 downto 0);
-  signal clk         : std_logic;
-  signal reset       : std_logic;
+  signal instruction         : std_logic_vector(31 downto 0);
+  signal clk                 : std_logic;
+  signal reset               : std_logic;
+  signal instruction_address : std_logic_vector(31 downto 0);
 
 begin
 
   uut : component hart
     port map (
-      instruction => instruction,
-      clk         => clk,
-      reset       => reset
+      instruction         => instruction,
+      clk                 => clk,
+      reset               => reset,
+      instruction_address => instruction_address
     );
 
   stimuli : process is
@@ -44,6 +47,9 @@ begin
     reset <= '1';
     wait for propagation_time;
     reset <= '0';
+    assert instruction_address = std_logic_vector(to_unsigned(0, instruction_address'length))
+      report "Instruction Address must be equal to zero on reset"
+      severity error;
 
     -- addi x1, x1, 32
     -- 00000010000000001000000010010011
@@ -52,6 +58,9 @@ begin
     clk         <= not clk;
     wait for propagation_time;
     clk         <= not clk;
+    assert instruction_address = std_logic_vector(to_unsigned(1, instruction_address'length))
+      report "Instruction Address must be equal to 1"
+      severity error;
 
     -- addi x1, x1, 32
     -- 00000010000000001000000010010011
@@ -60,6 +69,9 @@ begin
     clk         <= not clk;
     wait for propagation_time;
     clk         <= not clk;
+    assert instruction_address = std_logic_vector(to_unsigned(2, instruction_address'length))
+      report "Instruction Address must be equal to 2"
+      severity error;
 
     assert false
       report "test bench for hart is done"
