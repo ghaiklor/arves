@@ -38,8 +38,9 @@ end entity decoder;
 
 architecture rtl of decoder is
 
-  -- Vectors of instruction opcode combinations to distinguish instructions later in decoding
-  -- They are named with the category of instructions to do and its encoding type
+  -- Field "opcode" in RISC-V instruction specifies the type of operation to perform
+  -- Here, I'm mapping the field to constants in order to simplify decoding
+  -- Later on, we compare the "opcode" field from the instruction with these vectors
   constant alu_i_type : std_logic_vector(6 downto 0) := "0010011";
   constant alu_r_type : std_logic_vector(6 downto 0) := "0110011";
 
@@ -51,33 +52,52 @@ begin
 
   begin
 
-    -- I made an alias for 7 bits of instruction opcode to simplify decoding below
+    -- Assigning "opcode" field to the instruction_type helps to map it on the opcode vectors above
     instruction_type := instruction(6 downto 0);
 
-    -- The actual decoding is happening here
-    -- A great amount of if-s and then-s and I prefer to leave them isolated here, hopefully
-    if (instruction_type = alu_i_type) then
-      opcode <= instruction(6 downto 0);
-      rd     <= instruction(11 downto 7);
-      funct3 <= instruction(14 downto 12);
-      rs1    <= instruction(19 downto 15);
-      rs2    <= std_logic_vector(to_unsigned(0, rs2'length));
+    -- The actual decoding of the instruction is happening here
+    case instruction_type is
 
-      if (instruction(14 downto 12) = "001" or instruction(14 downto 12) = "101") then
-        immediate <= (31 downto 5 => '0') & instruction(24 downto 20);
+      when alu_i_type =>
+
+        opcode <= instruction(6 downto 0);
+        rd     <= instruction(11 downto 7);
+        rs1    <= instruction(19 downto 15);
+        rs2    <= std_logic_vector(to_unsigned(0, rs2'length));
+        funct3 <= instruction(14 downto 12);
+
+        -- Depending on funct3 vector, we need to treat funct7 and immediate fields differently
+        case instruction(14 downto 12) is
+
+          -- When it is a SLL, SRL or SRA operations, we need to take shift amount as immediate and funct7 fields
+          when "101" | "001" =>
+
+            funct7    <= instruction(31 downto 25);
+            immediate <= (31 downto 5 => '0') & instruction(24 downto 20);
+
+          -- In other cases, we treat the rest of the instruction as an immediate value
+          when others =>
+
+            funct7    <= (others => '0');
+            immediate <= (31 downto 12 => '0') & instruction(31 downto 20);
+
+        end case;
+
+      when alu_r_type =>
+
+        opcode    <= instruction(6 downto 0);
+        rd        <= instruction(11 downto 7);
+        rs1       <= instruction(19 downto 15);
+        rs2       <= instruction(24 downto 20);
+        funct3    <= instruction(14 downto 12);
         funct7    <= instruction(31 downto 25);
-      else
-        immediate <= (31 downto 12 => instruction(31)) & instruction(31 downto 20);
-        funct7    <= (others => '0');
-      end if;
-    elsif (instruction_type = alu_r_type) then
-      opcode <= instruction(6 downto 0);
-      rd     <= instruction(11 downto 7);
-      funct3 <= instruction(14 downto 12);
-      rs1    <= instruction(19 downto 15);
-      rs2    <= instruction(24 downto 20);
-      funct7 <= instruction(31 downto 25);
-    end if;
+        immediate <= std_logic_vector(to_unsigned(0, immediate'length));
+
+      when others =>
+
+        null;
+
+    end case;
 
   end process decode;
 
