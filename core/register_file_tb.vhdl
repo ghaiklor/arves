@@ -15,43 +15,44 @@ architecture tb of register_file_tb is
 
   component register_file is
     port (
-      register_a_select     : in    std_logic_vector(4 downto 0);
-      register_b_select     : in    std_logic_vector(4 downto 0);
-      register_write_select : in    std_logic_vector(4 downto 0);
-      data                  : in    std_logic_vector(31 downto 0);
-      write_enable          : in    std_logic;
-      clk                   : in    std_logic;
-      reset                 : in    std_logic;
-      out_a                 : out   std_logic_vector(31 downto 0);
-      out_b                 : out   std_logic_vector(31 downto 0)
+      select_a : in    std_logic_vector(4 downto 0);
+      data_a   : out   std_logic_vector(31 downto 0);
+
+      select_b : in    std_logic_vector(4 downto 0);
+      data_b   : out   std_logic_vector(31 downto 0);
+
+      select_write : in    std_logic_vector(4 downto 0);
+      data_write   : in    std_logic_vector(31 downto 0);
+      write_enable : in    std_logic;
+
+      clk   : in    std_logic;
+      reset : in    std_logic
     );
   end component;
 
-  for uut: register_file use entity work.register_file;
-
-  signal register_a_select     : std_logic_vector(4 downto 0);
-  signal register_b_select     : std_logic_vector(4 downto 0);
-  signal register_write_select : std_logic_vector(4 downto 0);
-  signal data                  : std_logic_vector(31 downto 0);
-  signal write_enable          : std_logic;
-  signal clk                   : std_logic;
-  signal reset                 : std_logic;
-  signal out_a                 : std_logic_vector(31 downto 0);
-  signal out_b                 : std_logic_vector(31 downto 0);
+  signal select_a     : std_logic_vector(4 downto 0);
+  signal data_a       : std_logic_vector(31 downto 0);
+  signal select_b     : std_logic_vector(4 downto 0);
+  signal data_b       : std_logic_vector(31 downto 0);
+  signal select_write : std_logic_vector(4 downto 0);
+  signal data_write   : std_logic_vector(31 downto 0);
+  signal write_enable : std_logic;
+  signal clk          : std_logic;
+  signal reset        : std_logic;
 
 begin
 
   uut : component register_file
     port map (
-      register_a_select     => register_a_select,
-      register_b_select     => register_b_select,
-      register_write_select => register_write_select,
-      data                  => data,
-      write_enable          => write_enable,
-      clk                   => clk,
-      reset                 => reset,
-      out_a                 => out_a,
-      out_b                 => out_b
+      select_a     => select_a,
+      data_a       => data_a,
+      select_b     => select_b,
+      data_b       => data_b,
+      select_write => select_write,
+      data_write   => data_write,
+      write_enable => write_enable,
+      clk          => clk,
+      reset        => reset
     );
 
   stimuli : process is
@@ -61,97 +62,95 @@ begin
   begin
 
     -- RESET
-    register_a_select     <= std_logic_vector(to_unsigned(1, register_a_select'length));
-    register_b_select     <= std_logic_vector(to_unsigned(2, register_b_select'length));
-    register_write_select <= std_logic_vector(to_unsigned(3, register_write_select'length));
-    data                  <= std_logic_vector(to_signed(4, data'length));
-    write_enable          <= '0';
-    clk                   <= '0';
-    reset                 <= '1';
+    select_a     <= std_logic_vector(to_unsigned(1, select_a'length));
+    select_b     <= std_logic_vector(to_unsigned(2, select_b'length));
+    select_write <= std_logic_vector(to_unsigned(3, select_write'length));
+    data_write   <= std_logic_vector(to_signed(4, data_write'length));
+    write_enable <= '0';
+    clk          <= '0';
+    reset        <= '1';
     wait for propagation_time;
-    assert out_a = std_logic_vector(to_unsigned(0, out_a'length))
-      report "out_a must be 0"
+    assert data_a = std_logic_vector(to_unsigned(0, data_a'length))
+      report "data_a must be 0"
       severity error;
-    assert out_b = std_logic_vector(to_unsigned(0, out_b'length))
-      report "out_b must be 0"
+    assert data_b = std_logic_vector(to_unsigned(0, data_b'length))
+      report "data_b must be 0"
       severity error;
 
     -- Write 32 to register x1
     -- li x1, 32
-    register_a_select     <= std_logic_vector(to_unsigned(1, register_a_select'length));
-    register_b_select     <= std_logic_vector(to_unsigned(2, register_b_select'length));
-    register_write_select <= std_logic_vector(to_unsigned(1, register_write_select'length));
-    data                  <= std_logic_vector(to_signed(32, data'length));
-    write_enable          <= '1';
-    clk                   <= '0';
-    reset                 <= '0';
+    select_a     <= std_logic_vector(to_unsigned(1, select_a'length));
+    select_b     <= std_logic_vector(to_unsigned(2, select_b'length));
+    select_write <= std_logic_vector(to_unsigned(1, select_write'length));
+    data_write   <= std_logic_vector(to_signed(32, data_write'length));
+    write_enable <= '1';
+    clk          <= '0';
+    reset        <= '0';
     wait for propagation_time;
-    clk                   <= '1';
+    clk          <= '1';
     wait for propagation_time;
-    assert out_a = std_logic_vector(to_unsigned(32, out_a'length))
-      report "out_a must be 32"
+    assert data_a = std_logic_vector(to_unsigned(32, data_a'length))
+      report "data_a must be 32"
       severity error;
-    assert out_b = std_logic_vector(to_unsigned(0, out_b'length))
-      report "out_b must be 0"
+    assert data_b = std_logic_vector(to_unsigned(0, data_b'length))
+      report "data_b must be 0"
       severity error;
 
     -- Write 64 to register x2
     -- li x2, 64
-    register_a_select     <= std_logic_vector(to_unsigned(1, register_a_select'length));
-    register_b_select     <= std_logic_vector(to_unsigned(2, register_b_select'length));
-    register_write_select <= std_logic_vector(to_unsigned(2, register_write_select'length));
-    data                  <= std_logic_vector(to_signed(64, data'length));
-    write_enable          <= '1';
-    clk                   <= '0';
-    reset                 <= '0';
+    select_a     <= std_logic_vector(to_unsigned(1, select_a'length));
+    select_b     <= std_logic_vector(to_unsigned(2, select_b'length));
+    select_write <= std_logic_vector(to_unsigned(2, select_write'length));
+    data_write   <= std_logic_vector(to_signed(64, data_write'length));
+    write_enable <= '1';
+    clk          <= '0';
+    reset        <= '0';
     wait for propagation_time;
-    clk                   <= '1';
+    clk          <= '1';
     wait for propagation_time;
-    assert out_a = std_logic_vector(to_unsigned(32, out_a'length))
-      report "out_a must be 32"
+    assert data_a = std_logic_vector(to_unsigned(32, data_a'length))
+      report "data_a must be 32"
       severity error;
-    assert out_b = std_logic_vector(to_unsigned(64, out_b'length))
-      report "out_b must be 64"
+    assert data_b = std_logic_vector(to_unsigned(64, data_b'length))
+      report "data_b must be 64"
       severity error;
 
     -- Write 128 to register x3
     -- li x3, 128
-    register_a_select     <= std_logic_vector(to_unsigned(3, register_a_select'length));
-    register_b_select     <= std_logic_vector(to_unsigned(2, register_b_select'length));
-    register_write_select <= std_logic_vector(to_unsigned(3, register_write_select'length));
-    data                  <= std_logic_vector(to_signed(128, data'length));
-    write_enable          <= '1';
-    clk                   <= '0';
-    reset                 <= '0';
+    select_a     <= std_logic_vector(to_unsigned(3, select_a'length));
+    select_b     <= std_logic_vector(to_unsigned(2, select_b'length));
+    select_write <= std_logic_vector(to_unsigned(3, select_write'length));
+    data_write   <= std_logic_vector(to_signed(128, data_write'length));
+    write_enable <= '1';
+    clk          <= '0';
+    reset        <= '0';
     wait for propagation_time;
-    clk                   <= '1';
+    clk          <= '1';
     wait for propagation_time;
-    assert out_a = std_logic_vector(to_unsigned(128, out_a'length))
-      report "out_a must be 128"
+    assert data_a = std_logic_vector(to_unsigned(128, data_a'length))
+      report "data_a must be 128"
       severity error;
-    assert out_b = std_logic_vector(to_unsigned(64, out_b'length))
-      report "out_b must be 64"
+    assert data_b = std_logic_vector(to_unsigned(64, data_b'length))
+      report "data_b must be 64"
       severity error;
 
     -- Writing does not occur with de-asserted write_enable pin
-    register_a_select     <= std_logic_vector(to_unsigned(1, register_a_select'length));
-    register_b_select     <= std_logic_vector(to_unsigned(2, register_b_select'length));
-    register_write_select <= std_logic_vector(to_unsigned(1, register_write_select'length));
-    data                  <= std_logic_vector(to_signed(128, data'length));
-    write_enable          <= '0';
-    clk                   <= '0';
-    reset                 <= '0';
+    select_a     <= std_logic_vector(to_unsigned(1, select_a'length));
+    select_b     <= std_logic_vector(to_unsigned(2, select_b'length));
+    select_write <= std_logic_vector(to_unsigned(1, select_write'length));
+    data_write   <= std_logic_vector(to_signed(128, data_write'length));
+    write_enable <= '0';
+    clk          <= '0';
+    reset        <= '0';
     wait for propagation_time;
-    clk                   <= '1';
+    clk          <= '1';
     wait for propagation_time;
-    assert out_a = std_logic_vector(to_unsigned(32, out_a'length))
-      report "out_a must be 32"
+    assert data_a = std_logic_vector(to_unsigned(32, data_a'length))
+      report "data_a must be 32"
       severity error;
-    assert out_b = std_logic_vector(to_unsigned(64, out_b'length))
-      report "out_b must be 64"
+    assert data_b = std_logic_vector(to_unsigned(64, data_b'length))
+      report "data_b must be 64"
       severity error;
-
-    wait for propagation_time;
 
     assert false
       report "test bench for register file is done"

@@ -24,41 +24,18 @@ library ieee;
 
 entity register_file is
   port (
-    --! Selection vector for Register A.
-    --! Value of Register A will be sent to output A.
-    register_a_select : in    std_logic_vector(4 downto 0);
+    select_a : in    std_logic_vector(4 downto 0);
+    data_a   : out   std_logic_vector(31 downto 0);
 
-    --! Selection vector for Register B.
-    --! Value of Register B will be sent to output B.
-    register_b_select : in    std_logic_vector(4 downto 0);
+    select_b : in    std_logic_vector(4 downto 0);
+    data_b   : out   std_logic_vector(31 downto 0);
 
-    --! Selection vector for Register to write.
-    --! Value from data input will be sent to this register.
-    register_write_select : in    std_logic_vector(4 downto 0);
-
-    --! Data to write into register file.
-    --! This data will be sent to register, selected by register_write_select.
-    data : in    std_logic_vector(31 downto 0);
-
-    --! Logic bit to enable register file for writing.
-    --! When de-asserted, whatever the register_write_select and data, it will not be written.
+    select_write : in    std_logic_vector(4 downto 0);
+    data_write   : in    std_logic_vector(31 downto 0);
     write_enable : in    std_logic;
 
-    --! Clock signal to synchronize writing.
-    --! The state of register file will be updating only on rising edge of the signal.
-    clk : in    std_logic;
-
-    --! Reset signal to set all registers values to zero.
-    --! It is asynchronous signal, meaning it is not tight to clock signal.
-    reset : in    std_logic;
-
-    --! Data vector of value from Register A.
-    --! Register A is selected by register_a_select input.
-    out_a : out   std_logic_vector(31 downto 0);
-
-    --! Data vector of value from Register B.
-    --! Register B is selected by register_b_select input.
-    out_b : out   std_logic_vector(31 downto 0)
+    clk   : in    std_logic;
+    reset : in    std_logic
   );
 end entity register_file;
 
@@ -70,18 +47,18 @@ architecture rtl of register_file is
 
 begin
 
-  out_a <= registers(to_integer(unsigned(register_a_select)));
-  out_b <= registers(to_integer(unsigned(register_b_select)));
+  data_a <= registers(to_integer(unsigned(select_a)));
+  data_b <= registers(to_integer(unsigned(select_b)));
 
-  clock : process (clk, reset) is
+  write : process (clk, reset) is
   begin
 
     if (reset = '1') then
       registers <= (others => (others => '0'));
     elsif (rising_edge(clk) and write_enable = '1') then
-      registers(to_integer(unsigned(register_write_select))) <= data;
+      registers(to_integer(unsigned(select_write))) <= data_write;
     end if;
 
-  end process clock;
+  end process write;
 
 end architecture rtl;
