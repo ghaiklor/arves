@@ -34,6 +34,7 @@ entity alu is
   port (
     a      : in    std_logic_vector(31 downto 0);
     b      : in    std_logic_vector(31 downto 0);
+    opcode : in    std_logic_vector(6 downto 0);
     funct3 : in    std_logic_vector(2 downto 0);
     funct7 : in    std_logic_vector(6 downto 0);
     result : out   std_logic_vector(31 downto 0)
@@ -42,65 +43,99 @@ end entity alu;
 
 architecture rtl of alu is
 
-  -- These vectors are concatenated vectors of funct7 and funct3 fields from RISC-V specification
-  -- They made to simplify internal decoding of operation code
-  constant addition               : std_logic_vector := "0000000" & "000";
-  constant subtraction            : std_logic_vector := "0100000" & "000";
-  constant shift_left_logical     : std_logic_vector := "0000000" & "001";
-  constant set_less_than_signed   : std_logic_vector := "0000000" & "010";
-  constant set_less_than_unsigned : std_logic_vector := "0000000" & "011";
-  constant exclusive_or           : std_logic_vector := "0000000" & "100";
-  constant shift_right_logical    : std_logic_vector := "0000000" & "101";
-  constant shift_right_arithmetic : std_logic_vector := "0100000" & "101";
-  constant logical_or             : std_logic_vector := "0000000" & "110";
-  constant logical_and            : std_logic_vector := "0000000" & "111";
+  -- These vectors are concatenated vectors of funct7, funct3 and opcode fields from RISC-V specification
+  -- They made to simplify internal decoding of computational instruction
+  -- In other words, I could say, this is the direct mapping from RISC-V specification
+  constant addition               : std_logic_vector(16 downto 0) := "0000000" & "000" & "0110011";
+  constant subtraction            : std_logic_vector(16 downto 0) := "0100000" & "000" & "0110011";
+  constant shift_left_logical     : std_logic_vector(16 downto 0) := "0000000" & "001" & "0110011";
+  constant set_less_than_signed   : std_logic_vector(16 downto 0) := "0000000" & "010" & "0110011";
+  constant set_less_than_unsigned : std_logic_vector(16 downto 0) := "0000000" & "011" & "0110011";
+  constant exclusive_or           : std_logic_vector(16 downto 0) := "0000000" & "100" & "0110011";
+  constant shift_right_logical    : std_logic_vector(16 downto 0) := "0000000" & "101" & "0110011";
+  constant shift_right_arithmetic : std_logic_vector(16 downto 0) := "0100000" & "101" & "0110011";
+  constant logical_or             : std_logic_vector(16 downto 0) := "0000000" & "110" & "0110011";
+  constant logical_and            : std_logic_vector(16 downto 0) := "0000000" & "111" & "0110011";
 
 begin
 
-  execute : process (a, b, funct3, funct7) is
+  compute : process (a, b, opcode, funct3, funct7) is
 
-    variable opcode : std_logic_vector(9 downto 0);
+    variable compute_type : std_logic_vector(16 downto 0);
 
   begin
 
-    -- Concatenate signals from funct7 and funct3 inputs in one vector to decode the operation
-    -- This opcode is compared with the constant vectors above
-    opcode := funct7 & funct3;
+    -- Concatenate funct7, funct3 and opcode fields in order to get a vector to compare with the compute types above
+    compute_type := funct7 & funct3 & opcode;
 
-    -- Here we make the actual comparing of internal opcode vector with the constant vectors
-    -- For any computational instruction from RISC-V specification there is a code to implement it in hardware
-    if (opcode = addition) then
-      result <= std_logic_vector(signed(a) + signed(b));
-    elsif (opcode = subtraction) then
-      result <= std_logic_vector(signed(a) - signed(b));
-    elsif (opcode = shift_left_logical) then
-      result <= std_logic_vector(shift_left(unsigned(a), to_integer(unsigned(b(4 downto 0)))));
-    elsif (opcode = set_less_than_signed) then
-      if (signed(a) < signed(b)) then
-        result <= std_logic_vector(to_unsigned(1, result'length));
-      else
-        result <= std_logic_vector(to_unsigned(0, result'length));
-      end if;
-    elsif (opcode = set_less_than_unsigned) then
-      if (unsigned(a) < unsigned(b)) then
-        result <= std_logic_vector(to_unsigned(1, result'length));
-      else
-        result <= std_logic_vector(to_unsigned(0, result'length));
-      end if;
-    elsif (opcode = exclusive_or) then
-      result <= a xor b;
-    elsif (opcode = shift_right_logical) then
-      result <= std_logic_vector(shift_right(unsigned(a), to_integer(unsigned(b(4 downto 0)))));
-    elsif (opcode = shift_right_arithmetic) then
-      result <= std_logic_vector(shift_right(signed(a), to_integer(unsigned(b(4 downto 0)))));
-    elsif (opcode = logical_or) then
-      result <= a or b;
-    elsif (opcode = logical_and) then
-      result <= a and b;
-    else
-      result <= std_logic_vector(to_unsigned(0, result'length));
-    end if;
+    -- Depending on the compute type we choose what kind of operation to perform on A and B
+    case compute_type is
 
-  end process execute;
+      -- ADD performs the addition of signed a and b
+      when addition =>
+
+        result <= std_logic_vector(signed(a) + signed(b));
+
+      -- SUB performs the subtraction of signed a and b
+      when subtraction =>
+
+        result <= std_logic_vector(signed(a) - signed(b));
+
+      -- SLL perform logical left on the value in a by the shift amount held in the lower 5 bits of b
+      when shift_left_logical =>
+
+        result <= std_logic_vector(shift_left(unsigned(a), to_integer(unsigned(b(4 downto 0)))));
+
+      -- SLT perform signed compares, writing 1 to result if A < B, 0 otherwise
+      when set_less_than_signed =>
+
+        if (signed(a) < signed(b)) then
+          result <= std_logic_vector(to_unsigned(1, result'length));
+        else
+          result <= std_logic_vector(to_unsigned(0, result'length));
+        end if;
+
+      -- SLTU perform unsigned compares, writing 1 to result if A < B, 0 otherwise
+      when set_less_than_unsigned =>
+
+        if (unsigned(a) < unsigned(b)) then
+          result <= std_logic_vector(to_unsigned(1, result'length));
+        else
+          result <= std_logic_vector(to_unsigned(0, result'length));
+        end if;
+
+      -- XOR perform bitwise exclusive OR
+      when exclusive_or =>
+
+        result <= a xor b;
+
+      -- SRL perform logical right on the value in a by the shift amount held in the lower 5 bits of b
+      when shift_right_logical =>
+
+        result <= std_logic_vector(shift_right(unsigned(a), to_integer(unsigned(b(4 downto 0)))));
+
+      -- SRA perform arithmetic right shift on the value in a by the shift amount held in the lower 5 bits of b
+      when shift_right_arithmetic =>
+
+        result <= std_logic_vector(shift_right(signed(a), to_integer(unsigned(b(4 downto 0)))));
+
+      -- OR perform bitwise logical OR
+      when logical_or =>
+
+        result <= a or b;
+
+      -- AND perform bitwise logical AND
+      when logical_and =>
+
+        result <= a and b;
+
+      -- Shouldn't really happen, but if it is then I prefer to have a constant zero there
+      when others =>
+
+        result <= std_logic_vector(to_unsigned(0, result'length));
+
+    end case;
+
+  end process compute;
 
 end architecture rtl;

@@ -18,16 +18,16 @@ architecture tb of alu_tb is
     port (
       a      : in    std_logic_vector(31 downto 0);
       b      : in    std_logic_vector(31 downto 0);
+      opcode : in    std_logic_vector(6 downto 0);
       funct3 : in    std_logic_vector(2 downto 0);
       funct7 : in    std_logic_vector(6 downto 0);
       result : out   std_logic_vector(31 downto 0)
     );
   end component;
 
-  for uut: alu use entity work.alu;
-
   signal a      : std_logic_vector(31 downto 0);
   signal b      : std_logic_vector(31 downto 0);
+  signal opcode : std_logic_vector(6 downto 0);
   signal funct3 : std_logic_vector(2 downto 0);
   signal funct7 : std_logic_vector(6 downto 0);
   signal result : std_logic_vector(31 downto 0);
@@ -40,6 +40,7 @@ begin
     port map (
       a      => a,
       b      => b,
+      opcode => opcode,
       funct3 => funct3,
       funct7 => funct7,
       result => result
@@ -57,6 +58,7 @@ begin
     -- 5 + 8 = 13
     a      <= std_logic_vector(to_signed(5, a'length));
     b      <= std_logic_vector(to_signed(8, b'length));
+    opcode <= "0110011";
     funct3 <= "000";
     funct7 <= "0000000";
     wait for propagation_time;
@@ -68,6 +70,7 @@ begin
     -- 17 - 9 = 8
     a      <= std_logic_vector(to_signed(17, a'length));
     b      <= std_logic_vector(to_signed(9, b'length));
+    opcode <= "0110011";
     funct3 <= "000";
     funct7 <= "0100000";
     wait for propagation_time;
@@ -80,6 +83,7 @@ begin
     -- 0010 << 1 = 0100 = 4
     a      <= std_logic_vector(to_signed(2, a'length));
     b      <= std_logic_vector(to_signed(1, b'length));
+    opcode <= "0110011";
     funct3 <= "001";
     funct7 <= "0000000";
     wait for propagation_time;
@@ -91,6 +95,7 @@ begin
     -- 5 < 10 = 1
     a      <= std_logic_vector(to_signed(5, a'length));
     b      <= std_logic_vector(to_signed(10, b'length));
+    opcode <= "0110011";
     funct3 <= "010";
     funct7 <= "0000000";
     wait for propagation_time;
@@ -102,6 +107,7 @@ begin
     -- 5 < 1 = 0
     a      <= std_logic_vector(to_signed(5, a'length));
     b      <= std_logic_vector(to_signed(1, b'length));
+    opcode <= "0110011";
     funct3 <= "010";
     funct7 <= "0000000";
     wait for propagation_time;
@@ -113,6 +119,7 @@ begin
     -- 5 < 10 = 1
     a      <= std_logic_vector(to_signed(5, a'length));
     b      <= std_logic_vector(to_signed(10, b'length));
+    opcode <= "0110011";
     funct3 <= "011";
     funct7 <= "0000000";
     wait for propagation_time;
@@ -124,6 +131,7 @@ begin
     -- 5 < 1 = 0
     a      <= std_logic_vector(to_signed(5, a'length));
     b      <= std_logic_vector(to_signed(1, b'length));
+    opcode <= "0110011";
     funct3 <= "011";
     funct7 <= "0000000";
     wait for propagation_time;
@@ -136,6 +144,7 @@ begin
     -- 0010 ^ 0100 = 0110 = 6
     a      <= std_logic_vector(to_signed(2, a'length));
     b      <= std_logic_vector(to_signed(4, b'length));
+    opcode <= "0110011";
     funct3 <= "100";
     funct7 <= "0000000";
     wait for propagation_time;
@@ -148,6 +157,7 @@ begin
     -- 0100 >> 1 = 0010 = 2
     a      <= std_logic_vector(to_signed(4, a'length));
     b      <= std_logic_vector(to_signed(1, b'length));
+    opcode <= "0110011";
     funct3 <= "101";
     funct7 <= "0000000";
     wait for propagation_time;
@@ -160,6 +170,7 @@ begin
     -- 1100 >>> 1 = 1110 = -2
     a      <= std_logic_vector(to_signed(-4, a'length));
     b      <= std_logic_vector(to_signed(1, b'length));
+    opcode <= "0110011";
     funct3 <= "101";
     funct7 <= "0100000";
     wait for propagation_time;
@@ -172,6 +183,7 @@ begin
     -- 0100 | 0011 = 0111 = 7
     a      <= std_logic_vector(to_signed(4, a'length));
     b      <= std_logic_vector(to_signed(3, b'length));
+    opcode <= "0110011";
     funct3 <= "110";
     funct7 <= "0000000";
     wait for propagation_time;
@@ -184,15 +196,13 @@ begin
     -- 0100 & 0011 = 0000 = 0
     a      <= std_logic_vector(to_signed(4, a'length));
     b      <= std_logic_vector(to_signed(3, b'length));
+    opcode <= "0110011";
     funct3 <= "111";
     funct7 <= "0000000";
     wait for propagation_time;
     assert result = std_logic_vector(to_signed(0, result'length))
       report "4 & 3 = 0"
       severity error;
-
-    -- Wait for another period to make waveforms easy to read at the end
-    wait for propagation_time;
 
     -- Notify that test bench has finished
     assert false
