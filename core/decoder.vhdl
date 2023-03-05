@@ -79,7 +79,7 @@ begin
           when others =>
 
             funct7    <= (others => '0');
-            immediate <= (31 downto 12 => '0') & instruction(31 downto 20);
+            immediate <= (31 downto 12 => instruction(31)) & instruction(31 downto 20);
 
         end case;
 
