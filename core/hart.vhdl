@@ -16,11 +16,11 @@ library ieee;
 
 entity hart is
   port (
-    instruction : in    std_logic_vector(31 downto 0);
-    clk         : in    std_logic;
-    reset       : in    std_logic;
+    address : out   std_logic_vector(31 downto 0);
+    data    : inout std_logic_vector(31 downto 0);
 
-    instruction_address : out   std_logic_vector(31 downto 0)
+    clk   : in    std_logic;
+    reset : in    std_logic
   );
 end entity hart;
 
@@ -30,6 +30,7 @@ architecture rtl of hart is
     port (
       a      : in    std_logic_vector(31 downto 0);
       b      : in    std_logic_vector(31 downto 0);
+      opcode : in    std_logic_vector(6 downto 0);
       funct3 : in    std_logic_vector(2 downto 0);
       funct7 : in    std_logic_vector(6 downto 0);
       result : out   std_logic_vector(31 downto 0)
@@ -38,15 +39,18 @@ architecture rtl of hart is
 
   component register_file is
     port (
-      register_a_select     : in    std_logic_vector(4 downto 0);
-      register_b_select     : in    std_logic_vector(4 downto 0);
-      register_write_select : in    std_logic_vector(4 downto 0);
-      data                  : in    std_logic_vector(31 downto 0);
-      write_enable          : in    std_logic;
-      clk                   : in    std_logic;
-      reset                 : in    std_logic;
-      out_a                 : out   std_logic_vector(31 downto 0);
-      out_b                 : out   std_logic_vector(31 downto 0)
+      select_a : in    std_logic_vector(4 downto 0);
+      data_a   : out   std_logic_vector(31 downto 0);
+
+      select_b : in    std_logic_vector(4 downto 0);
+      data_b   : out   std_logic_vector(31 downto 0);
+
+      select_write : in    std_logic_vector(4 downto 0);
+      data_write   : in    std_logic_vector(31 downto 0);
+      write_enable : in    std_logic;
+
+      clk   : in    std_logic;
+      reset : in    std_logic
     );
   end component;
 
@@ -63,23 +67,36 @@ architecture rtl of hart is
     );
   end component;
 
+  component program_counter is
+    port (
+      address : out   std_logic_vector(31 downto 0);
+
+      write_address : in    std_logic_vector(31 downto 0);
+      write_enable  : in    std_logic;
+
+      clk   : in    std_logic;
+      reset : in    std_logic
+    );
+  end component;
+
   -- ALU Signals
   signal alu_in_a       : std_logic_vector(31 downto 0);
   signal alu_in_b       : std_logic_vector(31 downto 0);
+  signal alu_in_opcode  : std_logic_vector(6 downto 0);
   signal alu_in_funct3  : std_logic_vector(2 downto 0);
   signal alu_in_funct7  : std_logic_vector(6 downto 0);
   signal alu_out_result : std_logic_vector(31 downto 0);
 
   -- Register File Signals
-  signal register_file_in_a_select     : std_logic_vector(4 downto 0);
-  signal register_file_in_b_select     : std_logic_vector(4 downto 0);
-  signal register_file_in_write_select : std_logic_vector(4 downto 0);
-  signal register_file_in_data         : std_logic_vector(31 downto 0);
+  signal register_file_in_select_a     : std_logic_vector(4 downto 0);
+  signal register_file_in_select_b     : std_logic_vector(4 downto 0);
+  signal register_file_in_select_write : std_logic_vector(4 downto 0);
+  signal register_file_in_data_write   : std_logic_vector(31 downto 0);
   signal register_file_in_write_enable : std_logic;
   signal register_file_in_clk          : std_logic;
   signal register_file_in_reset        : std_logic;
-  signal register_file_out_a           : std_logic_vector(31 downto 0);
-  signal register_file_out_b           : std_logic_vector(31 downto 0);
+  signal register_file_out_data_a      : std_logic_vector(31 downto 0);
+  signal register_file_out_data_b      : std_logic_vector(31 downto 0);
 
   -- Decoder Signals
   signal decoder_in_instruction : std_logic_vector(31 downto 0);
@@ -91,8 +108,12 @@ architecture rtl of hart is
   signal decoder_out_funct7     : std_logic_vector(6 downto 0);
   signal decoder_out_immediate  : std_logic_vector(31 downto 0);
 
-  -- Program Counter Register
-  signal program_counter : std_logic_vector(31 downto 0);
+  -- Program Counter Signals
+  signal program_counter_out_address      : std_logic_vector(31 downto 0);
+  signal program_counter_in_write_address : std_logic_vector(31 downto 0);
+  signal program_counter_in_write_enable  : std_logic;
+  signal program_counter_in_clk           : std_logic;
+  signal program_counter_in_reset         : std_logic;
 
 begin
 
@@ -100,6 +121,7 @@ begin
     port map (
       a      => alu_in_a,
       b      => alu_in_b,
+      opcode => alu_in_opcode,
       funct3 => alu_in_funct3,
       funct7 => alu_in_funct7,
       result => alu_out_result
@@ -107,15 +129,15 @@ begin
 
   functional_unit_register_file : component register_file
     port map (
-      register_a_select     => register_file_in_a_select,
-      register_b_select     => register_file_in_b_select,
-      register_write_select => register_file_in_write_select,
-      data                  => register_file_in_data,
-      write_enable          => register_file_in_write_enable,
-      clk                   => register_file_in_clk,
-      reset                 => register_file_in_reset,
-      out_a                 => register_file_out_a,
-      out_b                 => register_file_out_b
+      select_a     => register_file_in_select_a,
+      data_a       => register_file_out_data_a,
+      select_b     => register_file_in_select_b,
+      data_b       => register_file_out_data_b,
+      select_write => register_file_in_select_write,
+      data_write   => register_file_in_data_write,
+      write_enable => register_file_in_write_enable,
+      clk          => register_file_in_clk,
+      reset        => register_file_in_reset
     );
 
   functional_unit_decoder : component decoder
@@ -130,36 +152,44 @@ begin
       immediate   => decoder_out_immediate
     );
 
-  alu_in_a <= register_file_out_a;
-  alu_in_b <= register_file_out_b when decoder_out_opcode = "0110011" else
-              decoder_out_immediate when decoder_out_opcode = "0010011";
+  functional_unit_program_counter : component program_counter
+    port map (
+      address       => program_counter_out_address,
+      write_address => program_counter_in_write_address,
+      write_enable  => program_counter_in_write_enable,
+      clk           => program_counter_in_clk,
+      reset         => program_counter_in_reset
+    );
 
+  -- ALU Signals
+  alu_in_a <= register_file_out_data_a;
+  alu_in_b <= register_file_out_data_b when decoder_out_opcode = "0110011" else
+              decoder_out_immediate when decoder_out_opcode = "0010011" else
+              (others => '0');
+
+  alu_in_opcode <= decoder_out_opcode;
   alu_in_funct3 <= decoder_out_funct3;
   alu_in_funct7 <= decoder_out_funct7;
 
-  register_file_in_a_select     <= decoder_out_rs1;
-  register_file_in_b_select     <= decoder_out_rs2;
-  register_file_in_write_select <= decoder_out_rd;
-  register_file_in_data         <= alu_out_result;
+  -- Register File Signals
+  register_file_in_select_a     <= decoder_out_rs1;
+  register_file_in_select_b     <= decoder_out_rs2;
+  register_file_in_select_write <= decoder_out_rd;
+  register_file_in_data_write   <= alu_out_result;
   register_file_in_write_enable <= '1';
   register_file_in_clk          <= clk;
   register_file_in_reset        <= reset;
 
-  decoder_in_instruction <= instruction;
-  instruction_address    <= program_counter;
+  -- Decoder Signals
+  decoder_in_instruction <= data;
 
-  -- Each clock cycle we need to update our program counter
-  -- In case it is just a linear execution, we increment it by one
-  -- Otherwise, if it is a branching instruction, we need to update it with the value from the instruction
-  update_program_counter : process (clk, reset) is
-  begin
+  -- Program Counter Signals
+  program_counter_in_write_address <= std_logic_vector(to_unsigned(0, program_counter_in_write_address'length));
+  program_counter_in_write_enable  <= '0';
+  program_counter_in_clk           <= clk;
+  program_counter_in_reset         <= reset;
 
-    if (reset = '1') then
-      program_counter <= std_logic_vector(to_unsigned(0, program_counter'length));
-    elsif rising_edge(clk) then
-      program_counter <= std_logic_vector(unsigned(program_counter) + to_unsigned(1, program_counter'length));
-    end if;
-
-  end process update_program_counter;
+  -- Entity Signals
+  address <= program_counter_out_address;
 
 end architecture rtl;
