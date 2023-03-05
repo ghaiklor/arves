@@ -3,6 +3,7 @@
         "addi",
         "downto",
         "funct",
+        "inout",
         "sltu",
         "srai",
         "uart"
