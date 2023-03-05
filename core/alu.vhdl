@@ -46,16 +46,25 @@ architecture rtl of alu is
   -- These vectors are concatenated vectors of funct7, funct3 and opcode fields from RISC-V specification
   -- They made to simplify internal decoding of computational instruction
   -- In other words, I could say, this is the direct mapping from RISC-V specification
-  constant addition               : std_logic_vector(16 downto 0) := "0000000" & "000" & "0110011";
-  constant subtraction            : std_logic_vector(16 downto 0) := "0100000" & "000" & "0110011";
-  constant shift_left_logical     : std_logic_vector(16 downto 0) := "0000000" & "001" & "0110011";
-  constant set_less_than_signed   : std_logic_vector(16 downto 0) := "0000000" & "010" & "0110011";
-  constant set_less_than_unsigned : std_logic_vector(16 downto 0) := "0000000" & "011" & "0110011";
-  constant exclusive_or           : std_logic_vector(16 downto 0) := "0000000" & "100" & "0110011";
-  constant shift_right_logical    : std_logic_vector(16 downto 0) := "0000000" & "101" & "0110011";
-  constant shift_right_arithmetic : std_logic_vector(16 downto 0) := "0100000" & "101" & "0110011";
-  constant logical_or             : std_logic_vector(16 downto 0) := "0000000" & "110" & "0110011";
-  constant logical_and            : std_logic_vector(16 downto 0) := "0000000" & "111" & "0110011";
+  constant addition_i_type               : std_logic_vector(16 downto 0) := "0000000" & "000" & "0010011";
+  constant set_less_than_signed_i_type   : std_logic_vector(16 downto 0) := "0000000" & "010" & "0010011";
+  constant set_less_than_unsigned_i_type : std_logic_vector(16 downto 0) := "0000000" & "011" & "0010011";
+  constant exclusive_or_i_type           : std_logic_vector(16 downto 0) := "0000000" & "100" & "0010011";
+  constant logical_or_i_type             : std_logic_vector(16 downto 0) := "0000000" & "110" & "0010011";
+  constant logical_and_i_type            : std_logic_vector(16 downto 0) := "0000000" & "111" & "0010011";
+  constant shift_left_logical_i_type     : std_logic_vector(16 downto 0) := "0000000" & "001" & "0010011";
+  constant shift_right_logical_i_type    : std_logic_vector(16 downto 0) := "0000000" & "101" & "0010011";
+  constant shift_right_arithmetic_i_type : std_logic_vector(16 downto 0) := "0100000" & "101" & "0010011";
+  constant addition_r_type               : std_logic_vector(16 downto 0) := "0000000" & "000" & "0110011";
+  constant subtraction_r_type            : std_logic_vector(16 downto 0) := "0100000" & "000" & "0110011";
+  constant shift_left_logical_r_type     : std_logic_vector(16 downto 0) := "0000000" & "001" & "0110011";
+  constant set_less_than_signed_r_type   : std_logic_vector(16 downto 0) := "0000000" & "010" & "0110011";
+  constant set_less_than_unsigned_r_type : std_logic_vector(16 downto 0) := "0000000" & "011" & "0110011";
+  constant exclusive_or_r_type           : std_logic_vector(16 downto 0) := "0000000" & "100" & "0110011";
+  constant shift_right_logical_r_type    : std_logic_vector(16 downto 0) := "0000000" & "101" & "0110011";
+  constant shift_right_arithmetic_r_type : std_logic_vector(16 downto 0) := "0100000" & "101" & "0110011";
+  constant logical_or_r_type             : std_logic_vector(16 downto 0) := "0000000" & "110" & "0110011";
+  constant logical_and_r_type            : std_logic_vector(16 downto 0) := "0000000" & "111" & "0110011";
 
 begin
 
@@ -72,22 +81,22 @@ begin
     case compute_type is
 
       -- ADD performs the addition of signed a and b
-      when addition =>
+      when addition_i_type | addition_r_type =>
 
         result <= std_logic_vector(signed(a) + signed(b));
 
       -- SUB performs the subtraction of signed a and b
-      when subtraction =>
+      when subtraction_r_type =>
 
         result <= std_logic_vector(signed(a) - signed(b));
 
       -- SLL perform logical left on the value in a by the shift amount held in the lower 5 bits of b
-      when shift_left_logical =>
+      when shift_left_logical_i_type | shift_left_logical_r_type =>
 
         result <= std_logic_vector(shift_left(unsigned(a), to_integer(unsigned(b(4 downto 0)))));
 
       -- SLT perform signed compares, writing 1 to result if A < B, 0 otherwise
-      when set_less_than_signed =>
+      when set_less_than_signed_i_type | set_less_than_signed_r_type =>
 
         if (signed(a) < signed(b)) then
           result <= std_logic_vector(to_unsigned(1, result'length));
@@ -96,7 +105,7 @@ begin
         end if;
 
       -- SLTU perform unsigned compares, writing 1 to result if A < B, 0 otherwise
-      when set_less_than_unsigned =>
+      when set_less_than_unsigned_i_type | set_less_than_unsigned_r_type =>
 
         if (unsigned(a) < unsigned(b)) then
           result <= std_logic_vector(to_unsigned(1, result'length));
@@ -105,27 +114,27 @@ begin
         end if;
 
       -- XOR perform bitwise exclusive OR
-      when exclusive_or =>
+      when exclusive_or_i_type | exclusive_or_r_type =>
 
         result <= a xor b;
 
       -- SRL perform logical right on the value in a by the shift amount held in the lower 5 bits of b
-      when shift_right_logical =>
+      when shift_right_logical_i_type | shift_right_logical_r_type =>
 
         result <= std_logic_vector(shift_right(unsigned(a), to_integer(unsigned(b(4 downto 0)))));
 
       -- SRA perform arithmetic right shift on the value in a by the shift amount held in the lower 5 bits of b
-      when shift_right_arithmetic =>
+      when shift_right_arithmetic_i_type | shift_right_arithmetic_r_type =>
 
         result <= std_logic_vector(shift_right(signed(a), to_integer(unsigned(b(4 downto 0)))));
 
       -- OR perform bitwise logical OR
-      when logical_or =>
+      when logical_or_i_type | logical_or_r_type =>
 
         result <= a or b;
 
       -- AND perform bitwise logical AND
-      when logical_and =>
+      when logical_and_i_type | logical_and_r_type =>
 
         result <= a and b;
 
