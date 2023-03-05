@@ -17,6 +17,16 @@ end entity soc;
 
 architecture rtl of soc is
 
+  component hart is
+    port (
+      address : out   std_logic_vector(31 downto 0);
+      data    : inout std_logic_vector(31 downto 0);
+
+      clk   : in    std_logic;
+      reset : in    std_logic
+    );
+  end component;
+
   component rom is
     port (
       address : in    std_logic_vector(31 downto 0);
@@ -24,45 +34,36 @@ architecture rtl of soc is
     );
   end component;
 
-  component hart is
-    port (
-      instruction         : in    std_logic_vector(31 downto 0);
-      clk                 : in    std_logic;
-      reset               : in    std_logic;
-      instruction_address : out   std_logic_vector(31 downto 0)
-    );
-  end component;
+  -- Hart0 Signals
+  signal hart0_out_address : std_logic_vector(31 downto 0);
+  signal hart0_inout_data  : std_logic_vector(31 downto 0);
+  signal hart0_in_clk      : std_logic;
+  signal hart0_in_reset    : std_logic;
 
   -- Firmware Flash Signals
-  signal firmware_flash_in_address : std_logic_vector(31 downto 0);
-  signal firmware_flash_out_data   : std_logic_vector(31 downto 0);
-
-  -- Hardware Thread Signals
-  signal hart_in_instruction          : std_logic_vector(31 downto 0);
-  signal hart_in_clk                  : std_logic;
-  signal hart_in_reset                : std_logic;
-  signal hart_out_instruction_address : std_logic_vector(31 downto 0);
+  signal firmware_flash_address : std_logic_vector(31 downto 0);
+  signal firmware_flash_data    : std_logic_vector(31 downto 0);
 
 begin
 
   hart0 : component hart
     port map (
-      instruction         => hart_in_instruction,
-      clk                 => hart_in_clk,
-      reset               => hart_in_reset,
-      instruction_address => hart_out_instruction_address
+      address => hart0_out_address,
+      data    => hart0_inout_data,
+      clk     => hart0_in_clk,
+      reset   => hart0_in_reset
     );
 
   firmware_flash : component rom
     port map (
-      address => firmware_flash_in_address,
-      data    => firmware_flash_out_data
+      address => firmware_flash_address,
+      data    => firmware_flash_data
     );
 
-  firmware_flash_in_address <= hart_out_instruction_address;
+  hart0_inout_data <= firmware_flash_data;
+  hart0_in_clk     <= clk;
+  hart0_in_reset   <= reset;
 
-  hart_in_instruction <= firmware_flash_out_data;
-  hart_in_clk         <= clk;
-  hart_in_reset       <= reset;
+  firmware_flash_address <= hart0_out_address;
 
 end architecture rtl;
