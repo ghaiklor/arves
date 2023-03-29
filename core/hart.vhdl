@@ -26,6 +26,9 @@ end entity hart;
 
 architecture rtl of hart is
 
+  constant alu_i_type : std_logic_vector(6 downto 0) := "0010011";
+  constant alu_r_type : std_logic_vector(6 downto 0) := "0110011";
+
   component alu is
     port (
       a      : in    std_logic_vector(31 downto 0);
@@ -163,8 +166,8 @@ begin
 
   -- ALU Signals
   alu_in_a <= register_file_out_data_a;
-  alu_in_b <= register_file_out_data_b when decoder_out_opcode = "0110011" else
-              decoder_out_immediate when decoder_out_opcode = "0010011" else
+  alu_in_b <= register_file_out_data_b when decoder_out_opcode = alu_r_type else
+              decoder_out_immediate when decoder_out_opcode = alu_i_type else
               (others => '0');
 
   alu_in_opcode <= decoder_out_opcode;
