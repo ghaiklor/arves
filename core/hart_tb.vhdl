@@ -13,27 +13,27 @@ architecture tb of hart_tb is
 
   component hart is
     port (
-      address : out   std_logic_vector(31 downto 0);
-      data    : inout std_logic_vector(31 downto 0);
+      instruction_bus_address : out   std_logic_vector(31 downto 0);
+      instruction_bus_data    : in    std_logic_vector(31 downto 0);
 
       clk   : in    std_logic;
       reset : in    std_logic
     );
   end component;
 
-  signal address : std_logic_vector(31 downto 0);
-  signal data    : std_logic_vector(31 downto 0);
-  signal clk     : std_logic;
-  signal reset   : std_logic;
+  signal instruction_bus_address : std_logic_vector(31 downto 0);
+  signal instruction_bus_data    : std_logic_vector(31 downto 0);
+  signal clk                     : std_logic;
+  signal reset                   : std_logic;
 
 begin
 
   uut : component hart
     port map (
-      address => address,
-      data    => data,
-      clk     => clk,
-      reset   => reset
+      instruction_bus_address => instruction_bus_address,
+      instruction_bus_data    => instruction_bus_data,
+      clk                     => clk,
+      reset                   => reset
     );
 
   stimuli : process is
@@ -44,35 +44,35 @@ begin
 
     -- RESET
     -- Get the hart state into initial one
-    data  <= (others => '0');
-    clk   <= '0';
-    reset <= '1';
+    instruction_bus_data <= (others => '0');
+    clk                  <= '0';
+    reset                <= '1';
     wait for propagation_time;
-    assert address = std_logic_vector(to_unsigned(0, address'length))
+    assert instruction_bus_address = std_logic_vector(to_unsigned(0, instruction_bus_address'length))
       report "Address must be equal to zero on reset"
       severity error;
 
     -- addi x1, x1, 32
     -- 00000010000000001000000010010011
-    data  <= "00000010000000001000000010010011";
-    clk   <= '0';
-    reset <= '0';
+    instruction_bus_data <= "00000010000000001000000010010011";
+    clk                  <= '0';
+    reset                <= '0';
     wait for propagation_time;
-    clk   <= '1';
+    clk                  <= '1';
     wait for propagation_time;
-    assert address = std_logic_vector(to_unsigned(1, address'length))
+    assert instruction_bus_address = std_logic_vector(to_unsigned(1, instruction_bus_address'length))
       report "Address must be 0 + 1 on clock cycle"
       severity error;
 
     -- addi x1, x1, 32
     -- 00000010000000001000000010010011
-    data  <= "00000010000000001000000010010011";
-    clk   <= '0';
-    reset <= '0';
+    instruction_bus_data <= "00000010000000001000000010010011";
+    clk                  <= '0';
+    reset                <= '0';
     wait for propagation_time;
-    clk   <= '1';
+    clk                  <= '1';
     wait for propagation_time;
-    assert address = std_logic_vector(to_unsigned(2, address'length))
+    assert instruction_bus_address = std_logic_vector(to_unsigned(2, instruction_bus_address'length))
       report "Address must be 1 + 1 on clock cycle"
       severity error;
 

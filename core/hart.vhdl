@@ -16,8 +16,8 @@ library ieee;
 
 entity hart is
   port (
-    address : out   std_logic_vector(31 downto 0);
-    data    : inout std_logic_vector(31 downto 0);
+    instruction_bus_address : out   std_logic_vector(31 downto 0);
+    instruction_bus_data    : in    std_logic_vector(31 downto 0);
 
     clk   : in    std_logic;
     reset : in    std_logic
@@ -181,7 +181,7 @@ begin
   register_file_in_reset        <= reset;
 
   -- Decoder Signals
-  decoder_in_instruction <= data;
+  decoder_in_instruction <= instruction_bus_data;
 
   -- Program Counter Signals
   program_counter_in_write_address <= std_logic_vector(to_unsigned(0, program_counter_in_write_address'length));
@@ -190,6 +190,6 @@ begin
   program_counter_in_reset         <= reset;
 
   -- Entity Signals
-  address <= program_counter_out_address;
+  instruction_bus_address <= program_counter_out_address;
 
 end architecture rtl;
