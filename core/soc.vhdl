@@ -19,8 +19,8 @@ architecture rtl of soc is
 
   component hart is
     port (
-      address : out   std_logic_vector(31 downto 0);
-      data    : inout std_logic_vector(31 downto 0);
+      instruction_bus_address : out   std_logic_vector(31 downto 0);
+      instruction_bus_data    : in    std_logic_vector(31 downto 0);
 
       clk   : in    std_logic;
       reset : in    std_logic
@@ -35,10 +35,10 @@ architecture rtl of soc is
   end component;
 
   -- Hart0 Signals
-  signal hart0_out_address : std_logic_vector(31 downto 0);
-  signal hart0_inout_data  : std_logic_vector(31 downto 0);
-  signal hart0_in_clk      : std_logic;
-  signal hart0_in_reset    : std_logic;
+  signal hart0_instruction_bus_address : std_logic_vector(31 downto 0);
+  signal hart0_instruction_bus_data    : std_logic_vector(31 downto 0);
+  signal hart0_clk                     : std_logic;
+  signal hart0_reset                   : std_logic;
 
   -- Firmware Flash Signals
   signal firmware_flash_address : std_logic_vector(31 downto 0);
@@ -48,10 +48,10 @@ begin
 
   hart0 : component hart
     port map (
-      address => hart0_out_address,
-      data    => hart0_inout_data,
-      clk     => hart0_in_clk,
-      reset   => hart0_in_reset
+      instruction_bus_address => hart0_instruction_bus_address,
+      instruction_bus_data    => hart0_instruction_bus_data,
+      clk                     => hart0_clk,
+      reset                   => hart0_reset
     );
 
   firmware_flash : component rom
@@ -60,10 +60,12 @@ begin
       data    => firmware_flash_data
     );
 
-  hart0_inout_data <= firmware_flash_data;
-  hart0_in_clk     <= clk;
-  hart0_in_reset   <= reset;
+  -- Hart0 Signals
+  hart0_instruction_bus_data <= firmware_flash_data;
+  hart0_clk                  <= clk;
+  hart0_reset                <= reset;
 
-  firmware_flash_address <= hart0_out_address;
+  -- Firmware Flash Signals
+  firmware_flash_address <= hart0_instruction_bus_address;
 
 end architecture rtl;
