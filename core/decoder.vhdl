@@ -41,6 +41,8 @@ architecture rtl of decoder is
   -- Field "opcode" in RISC-V instruction specifies the type of operation to perform
   -- Here, I'm mapping the field to constants in order to simplify decoding
   -- Later on, we compare the "opcode" field from the instruction with these vectors
+  constant load_type  : std_logic_vector(6 downto 0) := "0000011";
+  constant store_type : std_logic_vector(6 downto 0) := "0100011";
   constant alu_i_type : std_logic_vector(6 downto 0) := "0010011";
   constant alu_r_type : std_logic_vector(6 downto 0) := "0110011";
 
@@ -57,6 +59,26 @@ begin
 
     -- The actual decoding of the instruction is happening here
     case instruction_type is
+
+      when load_type =>
+
+        opcode    <= instruction(6 downto 0);
+        rd        <= instruction(11 downto 7);
+        rs1       <= instruction(19 downto 15);
+        rs2       <= std_logic_vector(to_unsigned(0, rs2'length));
+        funct3    <= instruction(14 downto 12);
+        funct7    <= (others => '0');
+        immediate <= (31 downto 12 => instruction(31)) & instruction(31 downto 20);
+
+      when store_type =>
+
+        opcode    <= instruction(6 downto 0);
+        rd        <= std_logic_vector(to_unsigned(0, rd'length));
+        rs1       <= instruction(19 downto 15);
+        rs2       <= instruction(24 downto 20);
+        funct3    <= instruction(14 downto 12);
+        funct7    <= (others => '0');
+        immediate <= (31 downto 12 => instruction(31)) & instruction(31 downto 25) & instruction(11 downto 7);
 
       when alu_i_type =>
 

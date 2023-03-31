@@ -51,18 +51,6 @@ begin
     wait for propagation_time;
     clk <= not clk;
     wait for propagation_time;
-    clk <= not clk;
-    wait for propagation_time;
-    clk <= not clk;
-    wait for propagation_time;
-    clk <= not clk;
-    wait for propagation_time;
-    clk <= not clk;
-    wait for propagation_time;
-    clk <= not clk;
-    wait for propagation_time;
-    clk <= not clk;
-    wait for propagation_time;
 
     assert false
       report "test bench for System-On-Chip is done"

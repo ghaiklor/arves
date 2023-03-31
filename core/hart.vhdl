@@ -19,6 +19,18 @@ entity hart is
     instruction_bus_address : out   std_logic_vector(31 downto 0);
     instruction_bus_data    : in    std_logic_vector(31 downto 0);
 
+    data_bus_address         : out   std_logic_vector(31 downto 0);
+    data_bus_data_in         : in    std_logic_vector(31 downto 0);
+    data_bus_data_out        : out   std_logic_vector(31 downto 0);
+    data_bus_read_enable     : out   std_logic;
+    data_bus_read_byte       : out   std_logic;
+    data_bus_read_half_word  : out   std_logic;
+    data_bus_read_word       : out   std_logic;
+    data_bus_write_enable    : out   std_logic;
+    data_bus_write_byte      : out   std_logic;
+    data_bus_write_half_word : out   std_logic;
+    data_bus_write_word      : out   std_logic;
+
     clk   : in    std_logic;
     reset : in    std_logic
   );
@@ -26,6 +38,8 @@ end entity hart;
 
 architecture rtl of hart is
 
+  constant load_type  : std_logic_vector(6 downto 0) := "0000011";
+  constant store_type : std_logic_vector(6 downto 0) := "0100011";
   constant alu_i_type : std_logic_vector(6 downto 0) := "0010011";
   constant alu_r_type : std_logic_vector(6 downto 0) := "0110011";
 
@@ -168,20 +182,38 @@ begin
   alu_in_a <= register_file_out_data_a;
   alu_in_b <= register_file_out_data_b when decoder_out_opcode = alu_r_type else
               decoder_out_immediate when decoder_out_opcode = alu_i_type else
+              decoder_out_immediate when decoder_out_opcode = store_type else
+              decoder_out_immediate when decoder_out_opcode = load_type else
               (others => '0');
 
-  alu_in_opcode <= decoder_out_opcode;
-  alu_in_funct3 <= decoder_out_funct3;
-  alu_in_funct7 <= decoder_out_funct7;
+  alu_in_opcode <= alu_i_type when decoder_out_opcode = store_type else
+                   alu_i_type when decoder_out_opcode = load_type else
+                   decoder_out_opcode;
+
+  alu_in_funct3 <= "000" when decoder_out_opcode = store_type else
+                   "000" when decoder_out_opcode = load_type else
+                   decoder_out_funct3;
+
+  alu_in_funct7 <= "0000000" when decoder_out_opcode = store_type else
+                   "0000000" when decoder_out_opcode = load_type else
+                   decoder_out_funct7;
 
   -- Register File Signals
   register_file_in_select_a     <= decoder_out_rs1;
   register_file_in_select_b     <= decoder_out_rs2;
   register_file_in_select_write <= decoder_out_rd;
-  register_file_in_data_write   <= alu_out_result;
-  register_file_in_write_enable <= '1';
-  register_file_in_clk          <= clk;
-  register_file_in_reset        <= reset;
+  register_file_in_data_write   <= alu_out_result when decoder_out_opcode = alu_i_type else
+                                   alu_out_result when decoder_out_opcode = alu_r_type else
+                                   data_bus_data_in when decoder_out_opcode = load_type else
+                                   (others => '0');
+
+  register_file_in_write_enable <= '1' when decoder_out_opcode = alu_i_type else
+                                   '1' when decoder_out_opcode = alu_r_type else
+                                   '1' when decoder_out_opcode = load_type else
+                                   '0';
+
+  register_file_in_clk   <= clk;
+  register_file_in_reset <= reset;
 
   -- Decoder Signals
   decoder_in_instruction <= instruction_bus_data;
@@ -193,6 +225,33 @@ begin
   program_counter_in_reset         <= reset;
 
   -- Entity Signals
-  instruction_bus_address <= program_counter_out_address;
+  instruction_bus_address  <= program_counter_out_address;
+  data_bus_address         <= alu_out_result;
+  data_bus_data_out        <= register_file_out_data_b;
+  data_bus_read_enable     <= '1' when decoder_out_opcode = load_type else
+                              '0';
+  data_bus_read_byte       <= '1' when decoder_out_funct3 = "000" else
+                              '1' when decoder_out_funct3 = "001" else
+                              '1' when decoder_out_funct3 = "010" else
+                              '1' when decoder_out_funct3 = "100" else
+                              '1' when decoder_out_funct3 = "101" else
+                              '0';
+  data_bus_read_half_word  <= '1' when decoder_out_funct3 = "001" else
+                              '1' when decoder_out_funct3 = "010" else
+                              '1' when decoder_out_funct3 = "101" else
+                              '0';
+  data_bus_read_word       <= '1' when decoder_out_funct3 = "010" else
+                              '0';
+  data_bus_write_enable    <= '1' when decoder_out_opcode = store_type else
+                              '0';
+  data_bus_write_byte      <= '1' when decoder_out_funct3 = "000" else
+                              '1' when decoder_out_funct3 = "001" else
+                              '1' when decoder_out_funct3 = "010" else
+                              '0';
+  data_bus_write_half_word <= '1' when decoder_out_funct3 = "001" else
+                              '1' when decoder_out_funct3 = "010" else
+                              '0';
+  data_bus_write_word      <= '1' when decoder_out_funct3 = "010" else
+                              '0';
 
 end architecture rtl;
