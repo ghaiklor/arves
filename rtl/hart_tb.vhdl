@@ -16,24 +16,58 @@ architecture tb of hart_tb is
       instruction_bus_address : out   std_logic_vector(31 downto 0);
       instruction_bus_data    : in    std_logic_vector(31 downto 0);
 
+      data_bus_address         : out   std_logic_vector(31 downto 0);
+      data_bus_data_in         : in    std_logic_vector(31 downto 0);
+      data_bus_data_out        : out   std_logic_vector(31 downto 0);
+      data_bus_read_enable     : out   std_logic;
+      data_bus_read_byte       : out   std_logic;
+      data_bus_read_half_word  : out   std_logic;
+      data_bus_read_word       : out   std_logic;
+      data_bus_write_enable    : out   std_logic;
+      data_bus_write_byte      : out   std_logic;
+      data_bus_write_half_word : out   std_logic;
+      data_bus_write_word      : out   std_logic;
+
       clk   : in    std_logic;
       reset : in    std_logic
     );
   end component;
 
-  signal instruction_bus_address : std_logic_vector(31 downto 0);
-  signal instruction_bus_data    : std_logic_vector(31 downto 0);
-  signal clk                     : std_logic;
-  signal reset                   : std_logic;
+  signal instruction_bus_address  : std_logic_vector(31 downto 0);
+  signal instruction_bus_data     : std_logic_vector(31 downto 0);
+  signal data_bus_address         : std_logic_vector(31 downto 0);
+  signal data_bus_data_in         : std_logic_vector(31 downto 0);
+  signal data_bus_data_out        : std_logic_vector(31 downto 0);
+  signal data_bus_read_enable     : std_logic;
+  signal data_bus_read_byte       : std_logic;
+  signal data_bus_read_half_word  : std_logic;
+  signal data_bus_read_word       : std_logic;
+  signal data_bus_write_enable    : std_logic;
+  signal data_bus_write_byte      : std_logic;
+  signal data_bus_write_half_word : std_logic;
+  signal data_bus_write_word      : std_logic;
+  signal clk                      : std_logic;
+  signal reset                    : std_logic;
 
 begin
 
   uut : component hart
     port map (
-      instruction_bus_address => instruction_bus_address,
-      instruction_bus_data    => instruction_bus_data,
-      clk                     => clk,
-      reset                   => reset
+      instruction_bus_address  => instruction_bus_address,
+      instruction_bus_data     => instruction_bus_data,
+      data_bus_address         => data_bus_address,
+      data_bus_data_in         => data_bus_data_in,
+      data_bus_data_out        => data_bus_data_out,
+      data_bus_read_enable     => data_bus_read_enable,
+      data_bus_read_byte       => data_bus_read_byte,
+      data_bus_read_half_word  => data_bus_read_half_word,
+      data_bus_read_word       => data_bus_read_word,
+      data_bus_write_enable    => data_bus_write_enable,
+      data_bus_write_byte      => data_bus_write_byte,
+      data_bus_write_half_word => data_bus_write_half_word,
+      data_bus_write_word      => data_bus_write_word,
+      clk                      => clk,
+      reset                    => reset
     );
 
   stimuli : process is
