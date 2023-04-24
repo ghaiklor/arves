@@ -26,31 +26,37 @@ begin
       reset => reset
     );
 
-  stimuli : process is
+  clocker : process is
 
-    constant propagation_time : time := 1 ns;
+    constant clock_cycle_count  : integer := 5;
+    constant clock_cycle_period : time    := 1 ns;
+
+  begin
+
+    clk <= '0';
+    wait for clock_cycle_period;
+
+    for i in 1 to clock_cycle_count loop
+
+      clk <= not clk;
+      wait for clock_cycle_period;
+      clk <= not clk;
+      wait for clock_cycle_period;
+
+    end loop;
+
+    wait;
+
+  end process clocker;
+
+  stimuli : process is
 
   begin
 
     -- RESET
-    clk   <= '0';
     reset <= '1';
-    wait for propagation_time;
+    wait for 1 ns;
     reset <= '0';
-
-    -- Driving the clock
-    clk <= not clk;
-    wait for propagation_time;
-    clk <= not clk;
-    wait for propagation_time;
-    clk <= not clk;
-    wait for propagation_time;
-    clk <= not clk;
-    wait for propagation_time;
-    clk <= not clk;
-    wait for propagation_time;
-    clk <= not clk;
-    wait for propagation_time;
 
     assert false
       report "test bench for System-On-Chip is done"
