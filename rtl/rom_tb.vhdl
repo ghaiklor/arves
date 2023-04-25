@@ -34,20 +34,20 @@ begin
 
     address <= std_logic_vector(to_unsigned(0, address'length));
     wait for propagation_time;
-    assert data = x"3e800093"
-      report "Cell #0 must have a value 3e800093"
+    assert data = x"07f00093"
+      report "Cell #0 must have a value 07f00093"
       severity error;
 
     address <= std_logic_vector(to_unsigned(1, address'length));
     wait for propagation_time;
-    assert data = x"7d008113"
-      report "Cell #1 must have a value 7d008113"
+    assert data = x"00102223"
+      report "Cell #1 must have a value 00102223"
       severity error;
 
     address <= std_logic_vector(to_unsigned(2, address'length));
     wait for propagation_time;
-    assert data = x"c1810193"
-      report "Cell #2 must have a value c1810193"
+    assert data = x"00402103"
+      report "Cell #2 must have a value 00402103"
       severity error;
 
     assert false
