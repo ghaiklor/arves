@@ -37,7 +37,7 @@ begin
     elsif (rising_edge(clk) and write_enable = '1') then
       pc <= write_address;
     elsif (rising_edge(clk) and write_enable = '0') then
-      pc <= std_logic_vector(unsigned(pc) + to_unsigned(1, pc'length));
+      pc <= std_logic_vector(unsigned(pc) + to_unsigned(4, pc'length));
     end if;
 
   end process tick;
