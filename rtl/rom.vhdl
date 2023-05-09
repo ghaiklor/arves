@@ -21,20 +21,32 @@ architecture rtl of rom is
   -- However, the 32-bit address is still required by an input in the entity
   -- We won't have issues with that unless we will go out-of-bounds here
 
-  type rom_bank is array (0 to 255) of std_logic_vector(31 downto 0);
+  type rom_bank is array (0 to 255) of std_logic_vector(7 downto 0);
 
   -- Here, we can "flash" our firmware for testing purposes
   -- That block here is not for long, but it is here until we will have other interfaces for firmware to work
   -- vsg_disable_next_line signal_007
   signal memory : rom_bank := (
-    x"07f00093",
-    x"00102223",
-    x"00402103",
+    x"07",
+    x"f0",
+    x"00",
+    x"93",
+    x"00",
+    x"10",
+    x"22",
+    x"23",
+    x"00",
+    x"40",
+    x"21",
+    x"03",
     others => (others => '0')
   );
 
 begin
 
-  data <= memory(to_integer(unsigned(address)));
+  data <= memory(to_integer(unsigned(address))) &
+          memory(to_integer(unsigned(address) + 1)) &
+          memory(to_integer(unsigned(address) + 2)) &
+          memory(to_integer(unsigned(address) + 3));
 
 end architecture rtl;
