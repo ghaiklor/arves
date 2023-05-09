@@ -29,7 +29,7 @@ begin
   clocker : process is
 
     constant clock_cycle_count  : integer := 5;
-    constant clock_cycle_period : time    := 1 ns;
+    constant clock_cycle_period : time    := 2 ns;
 
   begin
 
