@@ -38,10 +38,13 @@ end entity hart;
 
 architecture rtl of hart is
 
-  constant load_type  : std_logic_vector(6 downto 0) := "0000011";
-  constant store_type : std_logic_vector(6 downto 0) := "0100011";
-  constant alu_i_type : std_logic_vector(6 downto 0) := "0010011";
-  constant alu_r_type : std_logic_vector(6 downto 0) := "0110011";
+  constant jump_and_link_type          : std_logic_vector(6 downto 0) := "1101111";
+  constant jump_and_link_register_type : std_logic_vector(6 downto 0) := "1100111";
+  constant branching_type              : std_logic_vector(6 downto 0) := "1100011";
+  constant load_type                   : std_logic_vector(6 downto 0) := "0000011";
+  constant store_type                  : std_logic_vector(6 downto 0) := "0100011";
+  constant alu_i_type                  : std_logic_vector(6 downto 0) := "0010011";
+  constant alu_r_type                  : std_logic_vector(6 downto 0) := "0110011";
 
   component alu is
     port (
@@ -205,11 +208,15 @@ begin
   register_file_in_data_write   <= alu_out_result when decoder_out_opcode = alu_i_type else
                                    alu_out_result when decoder_out_opcode = alu_r_type else
                                    data_bus_data_in when decoder_out_opcode = load_type else
+                                   std_logic_vector(signed(program_counter_out_address) + 4) when decoder_out_opcode = jump_and_link_register_type else
+                                   std_logic_vector(signed(program_counter_out_address) + 4) when decoder_out_opcode = jump_and_link_type else
                                    (others => '0');
 
   register_file_in_write_enable <= '1' when decoder_out_opcode = alu_i_type else
                                    '1' when decoder_out_opcode = alu_r_type else
                                    '1' when decoder_out_opcode = load_type else
+                                   '1' when decoder_out_opcode = jump_and_link_register_type else
+                                   '1' when decoder_out_opcode = jump_and_link_type else
                                    '0';
 
   register_file_in_clk   <= clk;
@@ -219,10 +226,23 @@ begin
   decoder_in_instruction <= instruction_bus_data;
 
   -- Program Counter Signals
-  program_counter_in_write_address <= std_logic_vector(to_unsigned(0, program_counter_in_write_address'length));
-  program_counter_in_write_enable  <= '0';
-  program_counter_in_clk           <= clk;
-  program_counter_in_reset         <= reset;
+  program_counter_in_write_address <= std_logic_vector(signed(program_counter_out_address) + signed(decoder_out_immediate)) when decoder_out_opcode = branching_type else
+                                      std_logic_vector(signed(decoder_out_immediate) + signed(register_file_out_data_a)) when decoder_out_opcode = jump_and_link_register_type else
+                                      std_logic_vector(signed(program_counter_out_address) + signed(decoder_out_immediate)) when decoder_out_opcode = jump_and_link_type else
+                                      std_logic_vector(to_unsigned(0, program_counter_in_write_address'length));
+
+  program_counter_in_write_enable <= '1' when decoder_out_opcode = branching_type and decoder_out_funct3 = "000" and register_file_out_data_a = register_file_out_data_b else
+                                     '1' when decoder_out_opcode = branching_type and decoder_out_funct3 = "001" and register_file_out_data_a /= register_file_out_data_b else
+                                     '1' when decoder_out_opcode = branching_type and decoder_out_funct3 = "100" and signed(register_file_out_data_a) < signed(register_file_out_data_b) else
+                                     '1' when decoder_out_opcode = branching_type and decoder_out_funct3 = "101" and not (signed(register_file_out_data_a) < signed(register_file_out_data_b)) else
+                                     '1' when decoder_out_opcode = branching_type and decoder_out_funct3 = "110" and unsigned(register_file_out_data_a) < unsigned(register_file_out_data_b) else
+                                     '1' when decoder_out_opcode = branching_type and decoder_out_funct3 = "111" and not (unsigned(register_file_out_data_a) < unsigned(register_file_out_data_b)) else
+                                     '1' when decoder_out_opcode = jump_and_link_register_type else
+                                     '1' when decoder_out_opcode = jump_and_link_type else
+                                     '0';
+
+  program_counter_in_clk   <= clk;
+  program_counter_in_reset <= reset;
 
   -- Entity Signals
   instruction_bus_address  <= program_counter_out_address;

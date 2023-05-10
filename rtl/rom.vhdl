@@ -27,18 +27,30 @@ architecture rtl of rom is
   -- That block here is not for long, but it is here until we will have other interfaces for firmware to work
   -- vsg_disable_next_line signal_007
   signal memory : rom_bank := (
-    x"07",
-    x"f0",
+    x"3e",
+    x"80",
     x"00",
     x"93",
+    x"7d",
     x"00",
-    x"10",
-    x"22",
-    x"23",
+    x"81",
+    x"13",
     x"00",
-    x"40",
-    x"21",
-    x"03",
+    x"c0",
+    x"01",
+    x"ef",
+    x"c1",
+    x"81",
+    x"01",
+    x"93",
+    x"83",
+    x"01",
+    x"82",
+    x"13",
+    x"3e",
+    x"82",
+    x"02",
+    x"93",
     others => (others => '0')
   );
 

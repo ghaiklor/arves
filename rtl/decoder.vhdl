@@ -41,10 +41,13 @@ architecture rtl of decoder is
   -- Field "opcode" in RISC-V instruction specifies the type of operation to perform
   -- Here, I'm mapping the field to constants in order to simplify decoding
   -- Later on, we compare the "opcode" field from the instruction with these vectors
-  constant load_type  : std_logic_vector(6 downto 0) := "0000011";
-  constant store_type : std_logic_vector(6 downto 0) := "0100011";
-  constant alu_i_type : std_logic_vector(6 downto 0) := "0010011";
-  constant alu_r_type : std_logic_vector(6 downto 0) := "0110011";
+  constant jump_and_link_type          : std_logic_vector(6 downto 0) := "1101111";
+  constant jump_and_link_register_type : std_logic_vector(6 downto 0) := "1100111";
+  constant branching_type              : std_logic_vector(6 downto 0) := "1100011";
+  constant load_type                   : std_logic_vector(6 downto 0) := "0000011";
+  constant store_type                  : std_logic_vector(6 downto 0) := "0100011";
+  constant alu_i_type                  : std_logic_vector(6 downto 0) := "0010011";
+  constant alu_r_type                  : std_logic_vector(6 downto 0) := "0110011";
 
 begin
 
@@ -59,6 +62,36 @@ begin
 
     -- The actual decoding of the instruction is happening here
     case instruction_type is
+
+      when jump_and_link_type =>
+
+        opcode    <= instruction(6 downto 0);
+        rd        <= instruction(11 downto 7);
+        rs1       <= std_logic_vector(to_unsigned(0, rs1'length));
+        rs2       <= std_logic_vector(to_unsigned(0, rs2'length));
+        funct3    <= (others => '0');
+        funct7    <= (others => '0');
+        immediate <= (31 downto 21 => instruction(31)) & instruction(31) & instruction(19 downto 12) & instruction(20) & instruction(30 downto 21) & '0';
+
+      when jump_and_link_register_type =>
+
+        opcode    <= instruction(6 downto 0);
+        rd        <= instruction(11 downto 7);
+        rs1       <= instruction(19 downto 15);
+        rs2       <= std_logic_vector(to_unsigned(0, rs2'length));
+        funct3    <= instruction(14 downto 12);
+        funct7    <= (others => '0');
+        immediate <= (31 downto 12 => instruction(31)) & instruction(31 downto 20);
+
+      when branching_type =>
+
+        opcode    <= instruction(6 downto 0);
+        rd        <= std_logic_vector(to_unsigned(0, rd'length));
+        rs1       <= instruction(19 downto 15);
+        rs2       <= instruction(24 downto 20);
+        funct3    <= instruction(14 downto 12);
+        funct7    <= (others => '0');
+        immediate <= (31 downto 13 => instruction(31)) & instruction(31) & instruction(7) & instruction(30 downto 25) & instruction(11 downto 8) & '0';
 
       when load_type =>
 
