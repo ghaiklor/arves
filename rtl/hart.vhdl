@@ -38,6 +38,7 @@ end entity hart;
 
 architecture rtl of hart is
 
+  constant load_upper_immediate_type   : std_logic_vector(6 downto 0) := "0110111";
   constant add_upper_immediate_pc_type : std_logic_vector(6 downto 0) := "0010111";
   constant jump_and_link_type          : std_logic_vector(6 downto 0) := "1101111";
   constant jump_and_link_register_type : std_logic_vector(6 downto 0) := "1100111";
@@ -212,6 +213,7 @@ begin
                                    std_logic_vector(signed(program_counter_out_address) + 4) when decoder_out_opcode = jump_and_link_register_type else
                                    std_logic_vector(signed(program_counter_out_address) + 4) when decoder_out_opcode = jump_and_link_type else
                                    std_logic_vector(signed(program_counter_out_address) + signed(decoder_out_immediate)) when decoder_out_opcode = add_upper_immediate_pc_type else
+                                   decoder_out_immediate when decoder_out_opcode = load_upper_immediate_type else
                                    (others => '0');
 
   register_file_in_write_enable <= '1' when decoder_out_opcode = alu_i_type else
@@ -220,6 +222,7 @@ begin
                                    '1' when decoder_out_opcode = jump_and_link_register_type else
                                    '1' when decoder_out_opcode = jump_and_link_type else
                                    '1' when decoder_out_opcode = add_upper_immediate_pc_type else
+                                   '1' when decoder_out_opcode = load_upper_immediate_type else
                                    '0';
 
   register_file_in_clk   <= clk;
