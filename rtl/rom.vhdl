@@ -56,9 +56,9 @@ architecture rtl of rom is
 
 begin
 
-  data <= memory(to_integer(unsigned(address))) &
-          memory(to_integer(unsigned(address) + 1)) &
+  data <= memory(to_integer(unsigned(address) + 3)) &
           memory(to_integer(unsigned(address) + 2)) &
-          memory(to_integer(unsigned(address) + 3));
+          memory(to_integer(unsigned(address) + 1)) &
+          memory(to_integer(unsigned(address)));
 
 end architecture rtl;
