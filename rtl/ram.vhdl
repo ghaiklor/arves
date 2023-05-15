@@ -34,7 +34,7 @@ end entity ram;
 
 architecture rtl of ram is
 
-  type ram_bank is array (0 to 4095) of std_logic_vector(7 downto 0);
+  type ram_bank is array (0 to 65536) of std_logic_vector(7 downto 0);
 
   signal memory : ram_bank;
 

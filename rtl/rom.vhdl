@@ -21,7 +21,7 @@ architecture rtl of rom is
   -- However, the 32-bit address is still required by an input in the entity
   -- We won't have issues with that unless we will go out-of-bounds here
 
-  type rom_bank is array (0 to 255) of std_logic_vector(7 downto 0);
+  type rom_bank is array (0 to 65536) of std_logic_vector(7 downto 0);
 
   -- Here, we can "flash" our firmware for testing purposes
   -- That block here is not for long, but it is here until we will have other interfaces for firmware to work
