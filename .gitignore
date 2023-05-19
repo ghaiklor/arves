@@ -1,0 +1,5 @@
+# GHDL Waveforms
+*.ghw
+
+# GHDL Work Library
+work-obj93.cf
