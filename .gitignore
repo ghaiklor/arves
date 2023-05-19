@@ -3,3 +3,6 @@
 
 # GHDL Work Library
 work-obj93.cf
+
+# Firmware Code in HEX
+firmware.hex
