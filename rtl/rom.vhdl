@@ -5,8 +5,12 @@
 
 library ieee;
   use ieee.std_logic_1164.all;
+  use ieee.std_logic_textio.all;
   use ieee.numeric_std.all;
   use ieee.math_real.all;
+
+library std;
+  use std.textio.all;
 
 entity rom is
   port (
@@ -26,35 +30,33 @@ architecture rtl of rom is
   -- Here, we can "flash" our firmware for testing purposes
   -- That block here is not for long, but it is here until we will have other interfaces for firmware to work
   -- vsg_disable_next_line signal_007
-  signal memory : rom_bank := (
-    x"93",
-    x"00",
-    x"80",
-    x"3e",
-    x"13",
-    x"81",
-    x"00",
-    x"7d",
-    x"ef",
-    x"01",
-    x"c0",
-    x"00",
-    x"93",
-    x"01",
-    x"81",
-    x"c1",
-    x"13",
-    x"82",
-    x"01",
-    x"83",
-    x"93",
-    x"02",
-    x"82",
-    x"3e",
-    others => (others => '0')
-  );
+  signal memory : rom_bank;
 
 begin
+
+  flash_firmware : process is
+
+    file     mem_file  : text open read_mode is "firmware.hex";
+    variable line      : line;
+    variable mem_value : std_logic_vector(7 downto 0);
+
+  begin
+
+    for i in memory'range loop
+
+      if (not endfile(mem_file)) then
+        readline(mem_file, line);
+        hread(line, mem_value);
+        memory(i) <= mem_value;
+      else
+        memory(i) <= (others => '0');
+      end if;
+
+    end loop;
+
+    wait;
+
+  end process flash_firmware;
 
   data <= memory(to_integer(unsigned(address) + 3)) &
           memory(to_integer(unsigned(address) + 2)) &
