@@ -6,3 +6,6 @@ work-obj93.cf
 
 # Firmware Code in HEX
 firmware.hex
+
+# Data Section in HEX
+data.hex
