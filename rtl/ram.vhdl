@@ -8,12 +8,8 @@
 
 library ieee;
   use ieee.std_logic_1164.all;
-  use ieee.std_logic_textio.all;
   use ieee.numeric_std.all;
   use ieee.math_real.all;
-
-library std;
-  use std.textio.all;
 
 entity ram is
   port (
@@ -62,30 +58,6 @@ begin
 
   data_out_3 <= memory(to_integer(unsigned(address) + 3)) when read_word = '1' and read_enable = '1' else
                 (others => '0');
-
-  flash_data : process is
-
-    file     mem_file  : text open read_mode is "data.hex";
-    variable line      : line;
-    variable mem_value : std_logic_vector(7 downto 0);
-
-  begin
-
-    for i in memory'range loop
-
-      if (not endfile(mem_file)) then
-        readline(mem_file, line);
-        hread(line, mem_value);
-        memory(i) <= mem_value;
-      else
-        memory(i) <= (others => '0');
-      end if;
-
-    end loop;
-
-    wait;
-
-  end process flash_data;
 
   write_reset : process (clk, reset) is
   begin
