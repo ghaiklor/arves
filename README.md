@@ -18,6 +18,67 @@ Before diving into implementation, I took several key decisions I never should c
 
 So, as you see, the important key point here is—simplicity. Simplicity in the implementation itself, the minimum required for the core to operate, but simple enough to understand the core principles behind how it works.
 
+## How to run?
+
+In order to run the CPU and give it some program, you need to make the following:
+
+### Compiling the program
+
+I've implemented the base “I” extension here, so the target for your toolchain must be RV32I.
+The resulting machine code (hex dump) must be saved to the file “firmware.hex” separated by one byte in big-endian order.
+
+Here is an example of a program:
+
+```asm
+.global _boot
+.text
+
+_boot:                    /* x0  = 0    0x000 */
+    /* Test ADDI */
+    addi x1 , x0,   1000  /* x1  = 1000 0x3E8 */
+    addi x2 , x1,   2000  /* x2  = 3000 0xBB8 */
+    addi x3 , x2,  -1000  /* x3  = 2000 0x7D0 */
+    addi x4 , x3,  -2000  /* x4  = 0    0x000 */
+    addi x5 , x4,   1000  /* x5  = 1000 0x3E8 */
+```
+
+Compiled via RISC-V assembler to RV32I and formatted in a way I described above and stored in the file “firmware.hex”:
+
+```text
+3e
+80
+00
+93
+7d
+00
+81
+13
+c1
+81
+01
+93
+83
+01
+82
+13
+3e
+82
+02
+93
+```
+
+### Running the simulation
+
+I'm using the open source VHDL simulator GHDL.
+Having the firmware in “firmware.hex” file, you can analyze and run the simulation via ghdl:
+
+```shell
+ghdl analyze -fsynopsys rtl/*.vhdl
+ghdl run -fsynopsys soc_tb --wave=wave.ghw
+```
+
+After the simulation you will get the file “wave.ghw” where you will find the waveform of your CPU signals and can investigate all the data and inner workings of the CPU.
+
 ## Components
 
 The system itself comprises several components that are responsible for executing RISC-V instructions or gluing together other components.
