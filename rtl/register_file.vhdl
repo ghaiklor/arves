@@ -55,6 +55,8 @@ begin
 
     if (reset = '1') then
       registers <= (others => (others => '0'));
+    elsif (select_write = "00000") then
+      -- skip writes to x0 to keep it 0
     elsif (rising_edge(clk) and write_enable = '1') then
       registers(to_integer(unsigned(select_write))) <= data_write;
     end if;
