@@ -152,6 +152,27 @@ begin
       report "data_b must be 64"
       severity error;
 
+    -- Writing to x0 does not change it
+    select_a <= std_logic_vector(to_unsigned(0, select_a'length));
+    select_b <= std_logic_vector(to_unsigned(0, select_a'length));
+    select_write <= std_logic_vector(to_unsigned(0, select_write'length));
+    data_write   <= std_logic_vector(to_unsigned(255, data_write'length));
+    write_enable <= '0';
+
+    clk <= '0';
+    wait for propagation_time;
+    assert data_a = std_logic_vector(to_unsigned(0, data_a'length))
+      report "reading x0: data_a must be 0"
+      severity error;
+
+    write_enable <= '1';
+    clk <= '1';
+    wait for propagation_time;
+    assert data_a = std_logic_vector(to_unsigned(0, data_a'length))
+      report "reading x0 after write: data_a must be 0"
+      severity error;
+
+    -- done
     assert false
       report "test bench for register file is done"
       severity note;
